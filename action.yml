@@ -1,0 +1,11 @@
+name: Dependabot CISA Known Exploitable Vulnerabilities
+description: Detect dependabot alerts against the list of CISA KEV CVE's
+author: "@felickz"
+runs:
+    using: composite
+    steps:
+      - run: ${{ github.action_path }}/action.ps1
+        shell: pwsh
+branding:
+    icon: package
+    color: purple
