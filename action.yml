@@ -1,10 +1,17 @@
-name: Dependabot CISA Known Exploitable Vulnerabilities
-description: Detect dependabot alerts against the list of CISA KEV CVE's
-author: "@felickz"
+name: Dependabot EPSS Action
+description: Detect dependabot alerts that exceed EPSS threshold
+inputs:
+  token:
+    description: 'GitHub Access Token that provides access to the organization. Must be provided via either parameter or environment variable GH_TOKEN. The github.token can only be used for public repositories.'
+    required: false
+  epss-threshold:
+    description: 'EPSS probability score threshold to fail the action (between 0 and 1)'
+    required: false
+    default: '0.6'
 runs:
     using: composite
     steps:
-      - run: ${{ github.action_path }}/action.ps1
+      - run: ${{ github.action_path }}/action.ps1 -GitHubToken ${{ inputs.token }} -EPSS_Threshold ${{ epss-threshold }}
         shell: pwsh
 branding:
     icon: package

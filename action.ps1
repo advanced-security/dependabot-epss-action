@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Action to detect if any open Dependabot alerts exceed a specified EPSS (Ecosystem Package Security Score) threshold.
+Action to detect if any open Dependabot alerts exceed a specified EPSS (Ecosystem Package Security Score) threshold.  See EPSS at https://www.first.org/epss
 .DESCRIPTION
 Requirements:
 - GITHUB_TOKEN env variable with repo scope or security_events scope. For public repositories, you may instead use the public_repo scope.
@@ -14,13 +14,17 @@ Requirements:
 # Remove-Variable * -ErrorAction SilentlyContinue;
 # PS> action.ps1
 
-A simple example execution of the internal pwsh script against an Owner/Repo outside of GitHub Action context
+.PARAMETER GitHubToken
+    The GitHub PAT that is used to authenticate to GitHub GH CLI (uses the envioronment value GH_TOKEN).
 
 .PARAMETER EPSS_Threshold
 Specifies the EPSS (Ecosystem Package Security Score) threshold value. The default threshold is set to 0.6.
 
 .NOTES
 The highest EPSS score as of March 2, 2024 is 0.97565, belonging to CVE-2021-44228 aka Log4j.
+
+See EPSS at https://www.first.org/epss
+Jay Jacobs, Sasha Romanosky, Benjamin Edwards, Michael Roytman, Idris Adjerid, (2021), Exploit Prediction Scoring System, Digital Threats Research and Practice, 2(3)
 
 .LINK
 https://github.com/advanced-security/dependabot-epss-action
@@ -29,10 +33,9 @@ https://github.com/advanced-security/dependabot-epss-action
 #add parameter for EPSS Threshold (default to 0.6)
 param(
     #The highest EPSS score is 0.97565, belonging to CVE-2021-44228 aka Log4j
-    [Parameter(Mandatory = $false)]
+    [string]$GitHubToken,
     [string]$EPSS_Threshold = "0.6"
 )
-
 
 function Decompress-GZip($infile, $outfile) {
     $inStream = New-Object System.IO.FileStream $inFile, ([IO.FileMode]::Open), ([IO.FileAccess]::Read), ([IO.FileShare]::Read)
@@ -72,6 +75,11 @@ else {
     Set-GitHubConfiguration -DisableTelemetry -SessionOnly
 }
 
+# set the GITHUB_TOKEN environment variable to the value of the GitHubToken parameter
+if (![String]::IsNullOrWhiteSpace($GitHubToken)) {
+    $env:GITHUB_TOKEN = $GitHubToken
+}
+
 #check if GITHUB_TOKEN is set
 if ($null -eq $env:GITHUB_TOKEN) {
     Set-ActionFailed -Message "GITHUB_TOKEN is not set"
@@ -106,14 +114,15 @@ while ($null -ne $Dependabot_Alerts.nextLink) {
 Write-ActionInfo "$OrganizationName/$RepositoryName Dependabot CVEs Count: $($Dependabot_Alerts_CVEs.Count)"
 Write-ActionDebug "$OrganizationName/$RepositoryName Dependabot CVEs: $Dependabot_Alerts_CVEs"
 
-
-#Grab the EPSS data from https://epss.cyentia.com/epss_scores-2024-03-02.csv"
+#Grab the EPSS data(https://www.first.org/epss/data_stats) from csv https://epss.cyentia.com/epss_scores-2024-03-02.csv"
+#TODO - Use First API ? https://www.first.org/epss/api
 $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd")
 $csv = "epss_scores-$date.csv"
 try {
     Invoke-WebRequest -Uri "https://epss.cyentia.com/$csv.gz" -OutFile "$csv.gz"
 }
 catch {
+    # Incase the date math is delayed and the file is not available yet (TODO cache the last known good file and use that if the current date is not available yet)
     $date = (Get-Date).ToUniversalTime().AddDays(-1).ToString("yyyy-MM-dd")
     $csv = "epss_scores-$date.csv"
     Invoke-WebRequest -Uri "https://epss.cyentia.com/$csv.gz" -OutFile "$csv.gz"
@@ -124,11 +133,11 @@ $epssHash = @{}
 $epss | ForEach-Object { $epssHash[$_.cve] = $_ }
 
 #Check if any Dependabot alerts have an EPSS score equal/above the threshold
-$epssMatch = $Dependabot_Alerts_CVEs | ForEach-Object { $epssHash[$_] } | Where-Object { $_.epss -ge $EPSS_Threshold }
+$epssMatch = $Dependabot_Alerts_CVEs | ForEach-Object { $epssHash[$_] } | Where-Object { [decimal]$_.epss -ge [decimal]$EPSS_Threshold }
 $isFail = $epssMatch.Count -gt 0
 
 #Summary
-$summary = "[$OrganizationName/$RepositoryName] -  $($Dependabot_Alerts_CVEs.Count) Dependabot Alerts total.`n"
+$summary = "[$OrganizationName/$RepositoryName] - $($Dependabot_Alerts_CVEs.Count) Dependabot Alerts total.`n"
 $summary += $isFail ? "$($epssMatch.Count) CVEs found in Dependabot alerts that exceed the EPSS '$EPSS_Threshold' threshold :`n $( $epssMatch | ForEach-Object { "$($_.cve) - $($_.epss) EPSS ($($_.percentile) percentile) `n" })" : "No CVEs found in Dependabot alerts that exceed the EPSS '$EPSS_Threshold' threshold."
 
 if ($isFail) {
