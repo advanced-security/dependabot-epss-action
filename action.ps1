@@ -33,7 +33,7 @@ https://github.com/advanced-security/dependabot-epss-action
 #add parameter for EPSS Threshold (default to 0.6)
 param(
     #The highest EPSS score is 0.97565, belonging to CVE-2021-44228 aka Log4j
-    [string]$GitHubToken,
+    [string]$GitHubToken = $null,
     [string]$EPSS_Threshold = "0.6"
 )
 
