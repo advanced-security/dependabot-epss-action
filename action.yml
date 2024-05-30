@@ -4,7 +4,7 @@ inputs:
   token:
     description: 'GitHub Access Token that provides access to the organization. Must be provided via either parameter or environment variable GH_TOKEN. The github.token can only be used for public repositories.'
     required: false
-    default: ''
+    default: $null
   epss-threshold:
     description: 'EPSS probability score threshold to fail the action (between 0 and 1)'
     required: false
