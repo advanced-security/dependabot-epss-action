@@ -11,7 +11,7 @@ inputs:
 runs:
     using: composite
     steps:
-      - run: ${{ github.action_path }}/action.ps1 -GitHubToken ${{ inputs.token }} -EPSS_Threshold ${{ epss-threshold }}
+      - run: ${{ github.action_path }}/action.ps1 -GitHubToken ${{ inputs.token }} -EPSS_Threshold ${{ inputs.epss-threshold }}
         shell: pwsh
 branding:
     icon: package
