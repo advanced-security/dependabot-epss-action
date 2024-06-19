@@ -1,6 +1,8 @@
 Action to detect if any open Dependabot alert CVEs exceed an EPSS threshold and fail the workflow.
 
-<todo: image here>
+![image](https://github.com/user-attachments/assets/267c2084-5769-4a82-92ae-2bad09701202)
+
+## Usage
 
 ```yml
 name: 'Dependabot EPSS Action'
