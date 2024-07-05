@@ -233,7 +233,7 @@ if ($isFail) {
         $color = Convert-SeverityToEmoji -severity $_.security_advisory.severity
         $scope = $_.dependency.scope
         $fixAvailable = $_.security_vulnerability.first_patched_version -and $_.security_vulnerability.first_patched_version.identifier -ne $null ? "[✅](# `"$($_.security_vulnerability.first_patched_version.identifier)`")" : "❌"
-        "[🔴](## `"Error`") | [$cve](https://nvd.nist.gov/vuln/detail/$cve) | $epss ($percentile) | [#$alertNumber]($alertUrl) [🤖](## `"$advisory`") | [$ghsa](https://github.com/advisories/$ghsa) | [$color](## `"$severity`")[$cvssScore](https://www.first.org/cvss/calculator/3.1#$cvssVector) | $created | $package($ecosystem) | [📝](## `"$manifest`") | $scope | $fixAvailable `n"
+        "[🔴](## `"Error`") | [$cve](https://nvd.nist.gov/vuln/detail/$cve) | $epss ($percentile) | [#$alertNumber]($alertUrl) [🤖](## `"$advisory`") | [$ghsa](https://github.com/advisories/$ghsa) | [$color](## `"$severity`")[$cvssScore](https://www.first.org/cvss/calculator/3.1#$cvssVector) | $created | $package ($ecosystem) | [📝](## `"$manifest`") | $scope | $fixAvailable `n"
     }
     $markdownSummary += $markdownSummaryTableRows
 }
