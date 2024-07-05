@@ -143,7 +143,7 @@ $epssMatch = $Dependabot_Alerts_CVEs | ForEach-Object { $epssHash[$_] } | Where-
 $isFail = $epssMatch.Count -gt 0
 
 #Summary
-$summary = "[$OrganizationName/$RepositoryName] - $($Dependabot_Alerts_CVEs.Count) Dependabot Alerts total.`n"
+$summary = "[$OrganizationName/$RepositoryName] - $($Dependabot_Alerts_CVEs.Count) Dependabot Alerts total that reference a CVE.`n"
 $summary += $isFail ? "$($epssMatch.Count) CVEs found in Dependabot alerts that exceed the EPSS '$EPSS_Threshold' threshold :`n $( $epssMatch | ForEach-Object { "$($_.cve) - $($_.epss) EPSS ($($_.percentile) percentile) `n" })" : "No CVEs found in Dependabot alerts that exceed the EPSS '$EPSS_Threshold' threshold."
 
 if ($isFail) {
