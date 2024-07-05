@@ -188,10 +188,6 @@ else {
         }
         $_ | Add-Member -MemberType NoteProperty -Name "scoring" -Value $scoring
     }
-
-
-    #Check if any Dependabot alerts have an EPSS score equal/above the threshold
-    #$epssMatch = $Dependabot_Alerts_CVEs | ForEach-Object { $epssHash[$_] } | Where-Object { [decimal]$_.epss -ge [decimal]$EPSS_Threshold }
 }
 
 #set failure if an of the Dependabot_Alerts_CVEs have an EPSS score equal/above the threshold
@@ -204,7 +200,7 @@ $summary += $isFail ? "Found $($Failures.Count) CVEs in Dependabot alerts that e
 
 #Actions Markdown Summary - https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary
 #flashy! - https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/
-$markdownSummary = "# $($epssMatch.Count -gt 0 ? '🚨' : '👍') Dependabot EPSS[^1] 🤖 Report ($((Get-Date).ToString("yyyy-MM-dd"))) `n"
+$markdownSummary = "# $($isFail ? '🚨' : '👍') Dependabot EPSS[^1] 🤖 Report ($((Get-Date).ToString("yyyy-MM-dd"))) `n"
 
 if ($isFail) {
 
