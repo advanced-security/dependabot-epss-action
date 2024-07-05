@@ -9,7 +9,7 @@ Requirements:
 # PS>Write-Host "initializing local run! Ensure you provide a valid GITHUB_TOKEN otherwise you will get a 401!!! "
 # $VerbosePreference = 'SilentlyContinue'
 # $env:GITHUB_TOKEN = gh auth token
-# $env:GITHUB_REPOSITORY = 'vulna-felickz/log4shell-vulnerable-app'
+# $env:GITHUB_REPOSITORY = 'vulna-felickz/python-dependabot-no-cve'
 # CLEAR GLOBAL VARIABLES!
 # Remove-Variable * -ErrorAction SilentlyContinue;
 # PS> action.ps1
@@ -104,11 +104,11 @@ $RepositoryName = $actionRepo.Repo
 #https://docs.github.com/en/rest/dependabot/alerts?apiVersion=2022-11-28#list-dependabot-alerts-for-a-repository
 $perPage = 100
 $Dependabot_Alerts = Invoke-GHRestMethod -Method GET -Uri "https://api.github.com/repos/$OrganizationName/$RepositoryName/dependabot/alerts?state=open&per_page=$perPage" -ExtendedResult $true
-$Dependabot_Alerts_CVEs = $Dependabot_Alerts.result | % { $_.security_advisory.cve_id }
+$Dependabot_Alerts_CVEs = $Dependabot_Alerts.result | Where-Object { $_.security_advisory.cve_id -ne $null } | ForEach-Object { $_.security_advisory.cve_id }
 #Get next page of dependabot alerts if there is one
 while ($null -ne $Dependabot_Alerts.nextLink) {
     $Dependabot_Alerts = Invoke-GHRestMethod -Method GET -Uri $Dependabot_Alerts.nextLink -ExtendedResult $true
-    $Dependabot_Alerts_CVEs += $Dependabot_Alerts.result | % { $_.security_advisory.cve_id }
+    $Dependabot_Alerts_CVEs += $Dependabot_Alerts.result | Where-Object { $_.security_advisory.cve_id -ne $null } | ForEach-Object { $_.security_advisory.cve_id }
 }
 
 Write-ActionInfo "$OrganizationName/$RepositoryName Dependabot CVEs Count: $($Dependabot_Alerts_CVEs.Count)"
