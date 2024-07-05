@@ -114,6 +114,12 @@ while ($null -ne $Dependabot_Alerts.nextLink) {
 Write-ActionInfo "$OrganizationName/$RepositoryName Dependabot CVEs Count: $($Dependabot_Alerts_CVEs.Count)"
 Write-ActionDebug "$OrganizationName/$RepositoryName Dependabot CVEs: $Dependabot_Alerts_CVEs"
 
+# Check if $Dependabot_Alerts_CVEs is null or empty and exit successfully
+if ($null -eq $Dependabot_Alerts_CVEs -or $Dependabot_Alerts_CVEs.Count -eq 0) {
+    Write-ActionInfo "No Dependabot CVEs found. Exiting script successfully."
+    exit 0
+}
+
 #Grab the EPSS data(https://www.first.org/epss/data_stats) from csv https://epss.cyentia.com/epss_scores-2024-03-02.csv"
 #TODO - Use First API ? https://www.first.org/epss/api
 $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd")
