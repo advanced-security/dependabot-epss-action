@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Action to detect if any open Dependabot alerts exceed a specified EPSS (Ecosystem Package Security Score) threshold.  See EPSS at https://www.first.org/epss
+Action to detect if any open Dependabot alerts exceed a specified EPSS (Exploit Prediction Scoring System) threshold.  See EPSS at https://www.first.org/epss
 .DESCRIPTION
 Requirements:
 - GITHUB_TOKEN env variable with repo scope or security_events scope. For public repositories, you may instead use the public_repo scope.
@@ -20,7 +20,7 @@ PS> action.ps1
     The GitHub PAT that is used to authenticate to GitHub GH CLI (uses the envioronment value GH_TOKEN).
 
 .PARAMETER EPSS_Threshold
-Specifies the EPSS (Ecosystem Package Security Score) threshold value. The default threshold is set to 0.6.
+Specifies the EPSS ( Exploit Prediction Scoring System) threshold value. The default threshold is set to 0.6.
 
 .NOTES
 The highest EPSS score as of March 2, 2024 is 0.97565, belonging to CVE-2021-44228 aka Log4j.
