@@ -177,8 +177,8 @@ else {
     $epssHash = @{}
     $epss | ForEach-Object { $epssHash[$_.cve] = $_ }
 
-
-    $Dependabot_Alerts_CVEs | ForEach-Object {
+    #Match EPSS scores to Dependabot Alerts CVEs, skip those without CVEs
+    $Dependabot_Alerts_CVEs | Where-Object { $_.security_advisory.cve_id }| ForEach-Object {
         $epssInfo = $epssHash[$_.security_advisory.cve_id]
         $scoring = New-Object PSObject -Property @{
             cve              = $epssInfo.cve
