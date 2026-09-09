@@ -74,19 +74,6 @@ function Convert-SeverityToEmoji {
 
 }
 
-function Decompress-GZip($infile, $outfile) {
-    $inStream = New-Object System.IO.FileStream $inFile, ([IO.FileMode]::Open), ([IO.FileAccess]::Read), ([IO.FileShare]::Read)
-    $gzipStream = New-Object System.IO.Compression.GzipStream $inStream, ([IO.Compression.CompressionMode]::Decompress)
-    $outStream = New-Object System.IO.FileStream $outFile, ([IO.FileMode]::Create), ([IO.FileAccess]::Write), ([IO.FileShare]::None)
-    $buffer = New-Object byte[](1024)
-    while (($read = $gzipStream.Read($buffer, 0, 1024)) -gt 0) {
-        $outStream.Write($buffer, 0, $read)
-    }
-    $gzipStream.Close()
-    $outStream.Close()
-    $inStream.Close()
-}
-
 # Handle `Untrusted repository` prompt
 Set-PSRepository PSGallery -InstallationPolicy Trusted
 
@@ -159,32 +146,14 @@ if ($null -eq $Dependabot_Alerts_CVEs -or $Dependabot_Alerts_CVEs.Count -eq 0 -o
     $epssMatch = @()
 }
 else {
-    #Grab the EPSS data(https://www.first.org/epss/data_stats) from csv https://epss.cyentia.com/epss_scores-2024-03-02.csv.gz"
-    #TODO - Use First API ? https://www.first.org/epss/api
-    $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-dd")
-    $csv = "epss_scores-$date.csv"
-    try {
-        Invoke-WebRequest -Uri "https://epss.cyentia.com/$csv.gz" -OutFile "$csv.gz"
-    }
-    catch {
-        # Incase the date math is delayed and the file is not available yet (TODO cache the last known good file and use that if the current date is not available yet)
-        $date = (Get-Date).ToUniversalTime().AddDays(-1).ToString("yyyy-MM-dd")
-        $csv = "epss_scores-$date.csv"
-        Invoke-WebRequest -Uri "https://epss.cyentia.com/$csv.gz" -OutFile "$csv.gz"
-    }
-    Decompress-GZip "$csv.gz" $csv
-    $epss = Import-Csv -Path $csv
-    $epssHash = @{}
-    $epss | ForEach-Object { $epssHash[$_.cve] = $_ }
-
-    #Match EPSS scores to Dependabot Alerts CVEs, skip those without CVEs
+    #Add EPSS scores from Dependabot alerts, skip those without CVEs
     $Dependabot_Alerts_CVEs | Where-Object { $_.security_advisory.cve_id }| ForEach-Object {
-        $epssInfo = $epssHash[$_.security_advisory.cve_id]
+        $epssInfo = $_.security_advisory.epss[0]
         $scoring = New-Object PSObject -Property @{
-            cve              = $epssInfo.cve
-            epss             = $epssInfo.epss
+            cve              = $_.security_advisory.cve_id
+            epss             = $epssInfo.percentage
             percentile       = $epssInfo.percentile
-            exceedsThreshold = ($epssInfo -and [decimal]$epssInfo.epss -ge [decimal]$EPSS_Threshold) ? $true : $false
+            exceedsThreshold = ($epssInfo -and [decimal]$epssInfo.percentage -ge [decimal]$EPSS_Threshold) ? $true : $false
         }
         $_ | Add-Member -MemberType NoteProperty -Name "scoring" -Value $scoring
     }
